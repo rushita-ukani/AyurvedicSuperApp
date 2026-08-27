@@ -1,38 +1,37 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import React, { useEffect } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { RootNavigator } from './src/navigation/RootNavigator';
+import { ToastSystem } from './src/components/common/ToastSystem';
+import { ErrorBoundary } from './src/components/common/ErrorBoundary';
+import { useAppStore } from './src/store/useAppStore';
+import { useCartStore } from './src/store/useCartStore';
+import { useBookingStore } from './src/store/useBookingStore';
+import { lightPalette, darkPalette } from './src/theme';
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+  const { themeMode } = useAppStore();
+  const { loadPersistedCart } = useCartStore();
+  const { loadPersistedBookings } = useBookingStore();
+
+  const isDarkMode = themeMode === 'dark';
+  const theme = isDarkMode ? darkPalette : lightPalette;
+
+  useEffect(() => {
+    loadPersistedCart();
+    loadPersistedBookings();
+  }, []);
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+          <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+          <ToastSystem />
+          <RootNavigator />
+        </View>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 
